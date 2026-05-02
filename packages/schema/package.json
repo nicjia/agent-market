@@ -1,0 +1,16 @@
+{
+  "name": "@agent-market/schema",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "zod": "^3.23.8",
+    "zod-to-json-schema": "^3.23.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "@agent-market/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@agent-market/contracts": "workspace:*",
+    "@agent-market/schema": "workspace:*",
+    "dotenv": "^16.4.5",
+    "ethers": "^6.13.2",
+    "fastify": "^4.28.1",
+    "pg": "^8.12.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.4"
+  }
+}
