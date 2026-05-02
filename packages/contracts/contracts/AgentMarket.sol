@@ -80,7 +80,7 @@ contract AgentMarket is VRFConsumerBaseV2 {
     mapping(address => uint256) public jurorStake;
     mapping(address => uint64) public jurorExitAt;
 
-    event TaskCreated(uint256 indexed taskId, address indexed requester, uint256 bounty, uint8 riskTier);
+    event TaskCreated(uint256 indexed taskId, address indexed requester, uint256 bounty, bytes32 taskSchemaHash, uint64 ttlSeconds, uint8 riskTier);
     event TaskLocked(uint256 indexed taskId, address indexed provider, bytes32 payloadHash, string payloadCid);
     event TaskChallenged(uint256 indexed taskId, address indexed requester, uint256 challengeFee);
     event JurorSelectionRequested(uint256 indexed taskId, uint256 requestId);
@@ -208,7 +208,7 @@ contract AgentMarket is VRFConsumerBaseV2 {
             vrfRequestId: 0
         });
 
-        emit TaskCreated(taskId, msg.sender, bounty, riskTier);
+        emit TaskCreated(taskId, msg.sender, bounty, taskSchemaHash, ttlSeconds, riskTier);
         return taskId;
     }
 

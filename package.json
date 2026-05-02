@@ -7,9 +7,12 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "pnpm -r dev",
+    "dev": "concurrently -k -n api,indexer,worker,web -c blue,green,magenta,yellow \"pnpm --filter @agent-market/api dev\" \"pnpm --filter @agent-market/indexer dev\" \"pnpm --filter @agent-market/jury-worker dev\" \"pnpm --filter @agent-market/web dev\"",
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "lint": "pnpm -r lint"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
   }
 }

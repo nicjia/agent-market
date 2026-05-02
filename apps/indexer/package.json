@@ -1,5 +1,5 @@
 {
-  "name": "@agent-market/jury-worker",
+  "name": "@agent-market/indexer",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -11,7 +11,8 @@
   "dependencies": {
     "@agent-market/contracts": "workspace:*",
     "dotenv": "^16.4.5",
-    "ethers": "^6.13.2"
+    "ethers": "^6.13.2",
+    "pg": "^8.12.0"
   },
   "devDependencies": {
     "tsx": "^4.16.2",

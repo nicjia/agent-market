@@ -1,5 +1,5 @@
 export const agentMarketAbi = [
-  "event TaskCreated(uint256 indexed taskId, address indexed requester, uint256 bounty, uint8 riskTier)",
+  "event TaskCreated(uint256 indexed taskId, address indexed requester, uint256 bounty, bytes32 taskSchemaHash, uint64 ttlSeconds, uint8 riskTier)",
   "event TaskLocked(uint256 indexed taskId, address indexed provider, bytes32 payloadHash, string payloadCid)",
   "event TaskChallenged(uint256 indexed taskId, address indexed requester, uint256 challengeFee)",
   "event JurorSelectionRequested(uint256 indexed taskId, uint256 requestId)",

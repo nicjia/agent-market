@@ -1,5 +1,6 @@
 import "dotenv/config";
 import Fastify from "fastify";
+import cors from "@fastify/cors";
 import { ethers } from "ethers";
 import { TaskSchemaZod, SubmittedPayloadZod } from "@agent-market/schema";
 import { agentMarketAbi } from "@agent-market/contracts/abi";
@@ -10,16 +11,21 @@ const contractAddress = process.env.CONTRACT_ADDRESS;
 const requesterKey = process.env.RA_PRIVATE_KEY;
 const providerKey = process.env.PA_PRIVATE_KEY;
 
-if (!rpcUrl || !contractAddress || !requesterKey || !providerKey) {
-  throw new Error("RPC_URL, CONTRACT_ADDRESS, RA_PRIVATE_KEY, and PA_PRIVATE_KEY are required");
+if (!rpcUrl || !contractAddress) {
+  throw new Error("RPC_URL and CONTRACT_ADDRESS are required");
 }
 
 const provider = new ethers.JsonRpcProvider(rpcUrl);
-const requesterWallet = new ethers.Wallet(requesterKey, provider);
-const providerWallet = new ethers.Wallet(providerKey, provider);
+const requesterWallet = requesterKey ? new ethers.Wallet(requesterKey, provider) : null;
+const providerWallet = providerKey ? new ethers.Wallet(providerKey, provider) : null;
 
-const requesterContract = new ethers.Contract(contractAddress, agentMarketAbi, requesterWallet);
-const providerContract = new ethers.Contract(contractAddress, agentMarketAbi, providerWallet);
+const requesterContract = requesterWallet
+  ? new ethers.Contract(contractAddress, agentMarketAbi, requesterWallet)
+  : null;
+const providerContract = providerWallet
+  ? new ethers.Contract(contractAddress, agentMarketAbi, providerWallet)
+  : null;
+const readContract = new ethers.Contract(contractAddress, agentMarketAbi, provider);
 
 function stableStringify(value: unknown): string {
   if (Array.isArray(value)) {
@@ -39,7 +45,14 @@ function hashJson(value: unknown): string {
 
 const app = Fastify({ logger: true });
 
+await app.register(cors, {
+  origin: true
+});
+
 app.post("/tasks", async (request, reply) => {
+  if (!requesterContract || !requesterWallet) {
+    return reply.code(400).send({ error: "Signer not configured. Submit a transaction and call /transactions/ingest." });
+  }
   const body = request.body as {
     taskSchema: unknown;
     bountyWei: string;
@@ -87,6 +100,9 @@ app.post("/tasks", async (request, reply) => {
 });
 
 app.post("/tasks/:taskId/submit", async (request, reply) => {
+  if (!providerContract || !providerWallet) {
+    return reply.code(400).send({ error: "Signer not configured. Submit a transaction and call /transactions/ingest." });
+  }
   const { taskId } = request.params as { taskId: string };
   const body = request.body as {
     payload: unknown;
@@ -116,6 +132,9 @@ app.post("/tasks/:taskId/submit", async (request, reply) => {
 
 app.post("/tasks/:taskId/challenge", async (request, reply) => {
   const { taskId } = request.params as { taskId: string };
+  if (!requesterContract) {
+    return reply.code(400).send({ error: "Signer not configured. Submit a transaction and call /transactions/ingest." });
+  }
   const fee: bigint = await requesterContract.calculateChallengeFee(taskId);
   const tx = await requesterContract.challenge(taskId, { value: fee });
   await tx.wait();
@@ -133,6 +152,9 @@ app.get("/tasks/:taskId/challenge-fee", async (request, reply) => {
 
 app.post("/tasks/:taskId/settle", async (request, reply) => {
   const { taskId } = request.params as { taskId: string };
+  if (!requesterContract) {
+    return reply.code(400).send({ error: "Signer not configured. Submit a transaction and call /transactions/ingest." });
+  }
   const tx = await requesterContract.settleAfterTTL(taskId);
   await tx.wait();
 
@@ -140,6 +162,93 @@ app.post("/tasks/:taskId/settle", async (request, reply) => {
 });
 
 app.get("/health", async () => ({ ok: true }));
+
+app.post("/transactions/ingest", async (request, reply) => {
+  const body = request.body as { txHash: string };
+  const receipt = await provider.getTransactionReceipt(body.txHash);
+  if (!receipt) {
+    return reply.code(404).send({ error: "Transaction not found" });
+  }
+
+  const events = receipt.logs
+    .map((log) => {
+      try {
+        return readContract.interface.parseLog(log);
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean);
+
+  return reply.send({ txHash: body.txHash, events });
+});
+
+app.post("/transactions/submit", async (request, reply) => {
+  const body = request.body as { rawTx: string };
+  const tx = await provider.broadcastTransaction(body.rawTx);
+  const receipt = await tx.wait();
+
+  const events = receipt.logs
+    .map((log) => {
+      try {
+        return readContract.interface.parseLog(log);
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean);
+
+  return reply.send({ txHash: receipt.hash, events });
+});
+
+app.get("/tasks", async (request, reply) => {
+  const status = (request.query as { status?: string }).status;
+  const result = status
+    ? await pool.query("select task_id as \"taskId\", bounty_wei as \"bountyWei\", state, risk_tier as \"riskTier\" from tasks where state = $1 order by task_id desc", [status])
+    : await pool.query("select task_id as \"taskId\", bounty_wei as \"bountyWei\", state, risk_tier as \"riskTier\" from tasks order by task_id desc");
+
+  return reply.send({ tasks: result.rows });
+});
+
+app.get("/tasks/:taskId", async (request, reply) => {
+  const { taskId } = request.params as { taskId: string };
+  const result = await pool.query("select * from tasks where task_id = $1", [taskId]);
+  if (result.rows.length === 0) {
+    return reply.code(404).send({ error: "Task not found" });
+  }
+  return reply.send({ task: result.rows[0] });
+});
+
+app.post("/tasks/:taskId/schema", async (request, reply) => {
+  const { taskId } = request.params as { taskId: string };
+  const body = request.body as { taskSchema: unknown };
+  const parsed = TaskSchemaZod.safeParse(body.taskSchema);
+  if (!parsed.success) {
+    return reply.code(400).send({ error: parsed.error.flatten() });
+  }
+
+  const schemaHash = hashJson(parsed.data);
+  const result = await pool.query("select schema_hash from tasks where task_id = $1", [taskId]);
+  if (result.rows.length === 0) {
+    return reply.code(404).send({ error: "Task not found" });
+  }
+
+  if (result.rows[0].schema_hash !== schemaHash) {
+    return reply.code(400).send({ error: "Schema hash mismatch" });
+  }
+
+  await pool.query("update tasks set schema_json = $1, updated_at = now() where task_id = $2", [parsed.data, taskId]);
+  return reply.send({ taskId, status: "schema_saved" });
+});
+
+app.get("/tasks/:taskId/votes", async (request, reply) => {
+  const { taskId } = request.params as { taskId: string };
+  const result = await pool.query(
+    "select juror, vote_valid as \"voteValid\", revealed from juror_votes where task_id = $1 order by id",
+    [taskId]
+  );
+  return reply.send({ votes: result.rows });
+});
 
 await initDb();
 app.listen({ port: 3000, host: "0.0.0.0" });

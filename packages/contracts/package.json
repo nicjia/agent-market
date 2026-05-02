@@ -9,7 +9,14 @@
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test",
-    "deploy": "hardhat run scripts/deploy.ts"
+    "deploy": "hardhat run scripts/deploy.ts",
+    "node": "hardhat node",
+    "deploy:local": "hardhat run scripts/deploy-local.ts --network localhost",
+    "deploy:base-sepolia": "hardhat run scripts/deploy-testnet.ts --network baseSepolia",
+    "deploy:arbitrum-sepolia": "hardhat run scripts/deploy-testnet.ts --network arbitrumSepolia",
+    "verify:base-sepolia": "hardhat verify --network baseSepolia",
+    "verify:arbitrum-sepolia": "hardhat verify --network arbitrumSepolia",
+    "fulfill:local": "hardhat run scripts/fulfill-vrf.ts --network localhost"
   },
   "devDependencies": {
     "@chainlink/contracts": "^1.2.0",

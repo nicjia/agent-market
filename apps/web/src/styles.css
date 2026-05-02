@@ -1,0 +1,162 @@
+:root {
+  color-scheme: light;
+  font-family: "Space Grotesk", "IBM Plex Sans", system-ui, sans-serif;
+  background: radial-gradient(circle at top, #f5efe6, #f0f1f4 55%, #e4ecf0);
+  color: #1b1b1f;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+.page {
+  padding: 40px 10vw 80px;
+}
+
+.hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  align-items: flex-end;
+  margin-bottom: 40px;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.75rem;
+  margin: 0 0 12px;
+}
+
+h1 {
+  font-size: clamp(2.4rem, 4vw, 3.6rem);
+  margin: 0 0 8px;
+}
+
+.subhead {
+  font-size: 1rem;
+  margin: 0;
+  opacity: 0.7;
+}
+
+.stats {
+  display: grid;
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+}
+
+.stats span {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  opacity: 0.6;
+}
+
+.stats strong {
+  font-size: 1.5rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  padding: 20px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+}
+
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin: 0 0 8px;
+  opacity: 0.6;
+}
+
+.meta {
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+  opacity: 0.7;
+}
+
+.pill {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  background: #f2f2f2;
+}
+
+.state-open {
+  background: #d7f5e4;
+}
+
+.state-ttl_countdown {
+  background: #ffe5b4;
+}
+
+.state-dispute_active {
+  background: #ffd6d6;
+}
+
+.state-settled {
+  background: #d6e4ff;
+}
+
+.votes {
+  display: grid;
+  gap: 8px;
+}
+
+.vote-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.vote {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+}
+
+.vote-yes {
+  background: #2d9cdb;
+  color: white;
+}
+
+.vote-no {
+  background: #ff7a7a;
+  color: white;
+}
+
+.muted {
+  opacity: 0.6;
+}
+
+@media (max-width: 720px) {
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .page {
+    padding: 32px 6vw 60px;
+  }
+}
