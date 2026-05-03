@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { ethers } from "ethers";
 import { Pool } from "pg";
-import { agentMarketAbi } from "@agent-market/contracts/abi";
+import agentMarketAbi from "@agent-market/contracts/abi";
 
 type ParsedLog = {
   name: string;
@@ -20,6 +20,32 @@ if (!rpcUrl || !contractAddress || !databaseUrl) {
 const provider = new ethers.JsonRpcProvider(rpcUrl);
 const contract = new ethers.Contract(contractAddress, agentMarketAbi, provider);
 const pool = new Pool({ connectionString: databaseUrl });
+
+async function waitForSchema(requiredTables: string[], timeoutMs = 60000, pollMs = 1000) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    const checks = await Promise.all(
+      requiredTables.map((table) => pool.query("select to_regclass($1) as reg", [`public.${table}`]))
+    );
+    const ready = checks.every((result) => result.rows[0]?.reg);
+    if (ready) return;
+    await new Promise((resolve) => setTimeout(resolve, pollMs));
+  }
+  throw new Error("Timed out waiting for database migrations to complete");
+}
+
+async function waitForRpc(timeoutMs = 60000, pollMs = 1000) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    try {
+      await provider.getBlockNumber();
+      return;
+    } catch {
+      await new Promise((resolve) => setTimeout(resolve, pollMs));
+    }
+  }
+  throw new Error("Timed out waiting for RPC to become available");
+}
 
 async function getLastIndexedBlock(): Promise<number> {
   const result = await pool.query("select last_block from indexer_state order by id desc limit 1");
@@ -128,6 +154,8 @@ async function indexOnce() {
 }
 
 async function main() {
+  await waitForRpc();
+  await waitForSchema(["migrations", "indexer_state", "chain_events", "tasks", "disputes", "juror_votes"]);
   await indexOnce();
   setInterval(() => {
     indexOnce().catch((err) => console.error(err));

@@ -3,7 +3,7 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { ethers } from "ethers";
 import { TaskSchemaZod, SubmittedPayloadZod } from "@agent-market/schema";
-import { agentMarketAbi } from "@agent-market/contracts/abi";
+import agentMarketAbi from "@agent-market/contracts/abi";
 import { initDb, pool } from "./db";
 
 const rpcUrl = process.env.RPC_URL;

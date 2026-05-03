@@ -1,14 +1,23 @@
-import "dotenv/config";
-import { HardhatUserConfig } from "hardhat/config";
-import "@nomicfoundation/hardhat-toolbox";
+require("dotenv/config");
+require("@nomicfoundation/hardhat-toolbox");
 
 const deployerKey = process.env.DEPLOYER_PRIVATE_KEY;
 
 const baseSepoliaRpc = process.env.BASE_SEPOLIA_RPC_URL;
 const arbitrumSepoliaRpc = process.env.ARBITRUM_SEPOLIA_RPC_URL;
 
-const config: HardhatUserConfig = {
-  solidity: "0.8.24",
+/** @type {import("hardhat/config").HardhatUserConfig} */
+const config = {
+  solidity: {
+    version: "0.8.24",
+    settings: {
+      viaIR: true,
+      optimizer: {
+        enabled: true,
+        runs: 200
+      }
+    }
+  },
   networks: {
     hardhat: {},
     localhost: {
@@ -49,4 +58,4 @@ const config: HardhatUserConfig = {
   }
 };
 
-export default config;
+module.exports = config;

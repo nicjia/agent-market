@@ -1,10 +1,16 @@
-import { ethers } from "hardhat";
+import hre from "hardhat";
+
+const { ethers } = hre;
+
+process.stdout.write("deploy-local: script loaded\n");
 
 const BASE_FEE = ethers.parseEther("0.1");
 const GAS_PRICE_LINK = 1_000_000_000n;
 
 async function main() {
   const [deployer] = await ethers.getSigners();
+  console.log("deploy-local: main start");
+  console.log("Deployer:", deployer.address);
 
   const VrfMockFactory = await ethers.getContractFactory("VRFCoordinatorV2Mock");
   const vrfMock = await VrfMockFactory.deploy(BASE_FEE, GAS_PRICE_LINK);
@@ -21,15 +27,20 @@ async function main() {
   await contract.waitForDeployment();
 
   const keyHash = ethers.keccak256(ethers.toUtf8Bytes("local-key-hash"));
-  await contract.setVrfConfig(keyHash, subId, 3, 200000);
-  await vrfMock.addConsumer(subId, await contract.getAddress());
+  const setConfigTx = await contract.setVrfConfig(keyHash, subId, 3, 200000);
+  await setConfigTx.wait();
+  const addConsumerTx = await vrfMock.addConsumer(subId, await contract.getAddress());
+  await addConsumerTx.wait();
 
-  console.log("VRF mock:", await vrfMock.getAddress());
-  console.log("Subscription:", subId.toString());
-  console.log("AgentMarket:", await contract.getAddress());
+  const vrfAddress = await vrfMock.getAddress();
+  const contractAddress = await contract.getAddress();
+
+  console.log("VRF_COORDINATOR:", vrfAddress);
+  console.log("VRF_SUBSCRIPTION_ID:", subId.toString());
+  console.log("CONTRACT_ADDRESS:", contractAddress);
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
 });

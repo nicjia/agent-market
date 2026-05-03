@@ -10,8 +10,10 @@
   },
   "dependencies": {
     "@agent-market/contracts": "workspace:*",
+    "@anthropic-ai/sdk": "^0.92.0",
     "dotenv": "^16.4.5",
-    "ethers": "^6.13.2"
+    "ethers": "^6.13.2",
+    "openai": "^6.35.0"
   },
   "devDependencies": {
     "tsx": "^4.16.2",

@@ -27,3 +27,5 @@ export const agentMarketAbi = [
   "function commitPeriodSeconds() view returns (uint64)",
   "function revealPeriodSeconds() view returns (uint64)"
 ];
+
+export default agentMarketAbi;

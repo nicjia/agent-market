@@ -7,12 +7,12 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently -k -n api,indexer,worker,web -c blue,green,magenta,yellow \"pnpm --filter @agent-market/api dev\" \"pnpm --filter @agent-market/indexer dev\" \"pnpm --filter @agent-market/jury-worker dev\" \"pnpm --filter @agent-market/web dev\"",
+    "dev": "concurrently -k -n node,api,indexer,web -c gray,blue,green,yellow \"pnpm --filter @agent-market/contracts node\" \"DOTENV_CONFIG_PATH=../../.env pnpm --filter @agent-market/api dev\" \"DOTENV_CONFIG_PATH=../../.env pnpm --filter @agent-market/indexer dev\" \"VITE_API_BASE=http://localhost:3000 pnpm --filter @agent-market/web dev\"",
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "lint": "pnpm -r lint"
   },
   "devDependencies": {
-    "concurrently": "^9.0.1"
+    "concurrently": "^9.2.1"
   }
 }

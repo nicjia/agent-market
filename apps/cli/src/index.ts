@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { Command } from "commander";
 import { ethers } from "ethers";
 import { TaskSchemaZod, SubmittedPayloadZod } from "@agent-market/schema";
-import { agentMarketAbi } from "@agent-market/contracts/abi";
+import agentMarketAbi from "@agent-market/contracts/abi";
 
 const rpcUrl = process.env.RPC_URL;
 const contractAddress = process.env.CONTRACT_ADDRESS;

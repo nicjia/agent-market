@@ -1,4 +1,6 @@
-import { ethers } from "hardhat";
+import hre from "hardhat";
+
+const { ethers } = hre;
 
 async function main() {
   const requestId = process.env.VRF_REQUEST_ID;
